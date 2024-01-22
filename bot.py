@@ -1,14 +1,13 @@
 # version 1.0
 
-import os
 import glob
+import os
 
 import pytesseract
 import telebot
-from telebot import types
-from pdf2image import convert_from_path
 from dotenv import load_dotenv
-
+from pdf2image import convert_from_path
+from telebot import types
 
 load_dotenv()
 token = os.getenv('TOKEN')
