@@ -1,17 +1,16 @@
 # version 2.0.1 inline keyboard + voice message + OpenCV
-import cv2
-import pytesseract
-import telebot
 import glob
-import speech_recognition as sr
-import pydub
 import os
 
-from telebot import types
-from pdf2image import convert_from_path
+import cv2
+import pydub
+import pytesseract
+import speech_recognition as sr
+import telebot
 from dotenv import load_dotenv
 from exception import UnknownValueError
-
+from pdf2image import convert_from_path
+from telebot import types
 
 load_dotenv()
 token = os.getenv('TOKEN')
@@ -148,7 +147,9 @@ def voice(call):
     elif call.data == 'but_8':
         lang = 'en_EN'
         bot.send_message(call.message.chat.id, 'Выбран английский язык.')
-    send = bot.send_message(call.message.chat.id, 'Отправь голосовое сообщение.')
+    send = bot.send_message(
+        call.message.chat.id, 'Отправь голосовое сообщение.'
+    )
     bot.register_next_step_handler(send, hendle_voice)
 
 
@@ -181,13 +182,20 @@ def prepaire_img(message, image_path):
     # Применить фильтр Собеля для обнаружения вертикальных границ
     sobel_x = cv2.Sobel(gray_image, cv2.CV_8U, 1, 0)
     # Применить бинаризацию для разделения областей с текстом от фона
-    _, threshold_image = cv2.threshold(sobel_x, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+    _, threshold_image = cv2.threshold(
+        sobel_x, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
+    )
     # Применить дилатацию для усиления границ текста
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (17, 3))
     dilated_image = cv2.dilate(threshold_image, kernel, iterations=1)
-    # Найти контуры на изображении и отфильтровать их, чтобы оставить только те, которые выглядят как колонки текста
-    contours, hierarchy = cv2.findContours(dilated_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    cont = cv2.drawContours(dilated_image, contours, -1, (0, 250, 0), 3, cv2.LINE_AA, hierarchy, 1)
+    # Найти контуры на изображении и отфильтровать их,
+    # чтобы оставить только те, которые выглядят как колонки текста
+    contours, hierarchy = cv2.findContours(
+        dilated_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
+    )
+    cont = cv2.drawContours(
+        dilated_image, contours, -1, (0, 250, 0), 3, cv2.LINE_AA, hierarchy, 1
+    )
     cv2.imwrite('contours.jpg', cont)
     column_contours = []
     for contour in contours:
@@ -332,7 +340,7 @@ def voice_to_text(message, name, lang):
             result = r.recognize_google(audio, language=lang)
             bot.send_message(message.chat.id, 'Вот твой текст!')
             bot.send_message(message.chat.id, result)
-        except:
+        except UnknownValueError:
             raise UnknownValueError(bot.send_message(
                 message.chat.id, 'Не получилось разобрать аудио.'))
 
