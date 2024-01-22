@@ -1,30 +1,27 @@
+# version 1.0.2
+import glob
+import os
+
 import pytesseract
 import telebot
-from telebot import types
+from dotenv import load_dotenv
 from pdf2image import convert_from_path
-import glob
-# import cv2
-# import numpy as np
-import os
-# # folder = '/Users/madmas/Dev/img2text_bot/image.jpg'
-# if not os.path.exists(folder):
-#     os.makedirs(folder)
+from telebot import types
 
+load_dotenv()
+token = os.getenv('TOKEN')
+bot = telebot.TeleBot(token)
 
-# Token = os.getenv()
-# filepath = r'/Users/madmas/Dev/img2text_bot/files/pdf_file.pdf'
-# pdf = pdfium.PdfDocument(filepath)
-tesseract_path = r'/usr/local/bin/tesseract'
+tesseract_path = os.getenv('TESSERACT_PATH')
 config = r'--oem 3 --psm 6'
-pdfs = glob.glob(r'/Users/madmas/Dev/img2text_bot/files/*.pdf')
+pdfs = glob.glob(os.getenv('PDF_PATH'))
 
 pytesseract.pytesseract.tesseract_cmd = tesseract_path
-token = '6178601787:AAGjOQ9vN0K0IanubmcLCsgDolYOC5tdgkc'
-bot = telebot.TeleBot(token)
 
 
 @bot.message_handler(commands=['start'])
 def start_message(message):
+    """Запуск бота, отправка кнопок выбора"""
     buttons = types.InlineKeyboardMarkup(row_width=2)
     button_1 = types.InlineKeyboardButton('image', callback_data='image')
     button_2 = types.InlineKeyboardButton('pdf', callback_data='pdf')
@@ -42,12 +39,25 @@ def start_message(message):
 
 @bot.callback_query_handler(func=lambda call: call.data in ['image', 'pdf'])
 def main_keyboard(call):
+    """Отправка inline клавиатуры, выбор языка"""
     if call.data == 'image':
         new_menu = types.InlineKeyboardMarkup(row_width=2)
-        lang_rus = types.InlineKeyboardButton('Русский 🇷🇺', callback_data='but_1')
-        lang_eng = types.InlineKeyboardButton('Английский 🇬🇧', callback_data='but_2')
-        lang_mix = types.InlineKeyboardButton('Смешанный язык 🇷🇺+🇬🇧', callback_data='but_3')
-        back = types.InlineKeyboardButton('Сменить формат 🔄', callback_data='pdf')
+        lang_rus = types.InlineKeyboardButton(
+            'Русский 🇷🇺',
+            callback_data='but_1'
+        )
+        lang_eng = types.InlineKeyboardButton(
+            'Английский 🇬🇧',
+            callback_data='but_2'
+        )
+        lang_mix = types.InlineKeyboardButton(
+            'Смешанный язык 🇷🇺+🇬🇧',
+            callback_data='but_3'
+        )
+        back = types.InlineKeyboardButton(
+            'Сменить формат 🔄',
+            callback_data='pdf'
+        )
         new_menu.add(lang_rus, lang_eng, lang_mix).row(back)
         bot.edit_message_text(
             chat_id=call.message.chat.id,
@@ -61,10 +71,22 @@ def main_keyboard(call):
         )
     elif call.data == 'pdf':
         new_menu2 = types.InlineKeyboardMarkup(row_width=2)
-        lang_rus = types.InlineKeyboardButton('Русский 🇷🇺', callback_data='but_4')
-        lang_eng = types.InlineKeyboardButton('Английский 🇬🇧', callback_data='but_5')
-        lang_mix = types.InlineKeyboardButton('Смешанный язык 🇷🇺+🇬🇧', callback_data='but_6')
-        back = types.InlineKeyboardButton('Сменить фоомат 🔄', callback_data='image')
+        lang_rus = types.InlineKeyboardButton(
+            'Русский 🇷🇺',
+            callback_data='but_4'
+        )
+        lang_eng = types.InlineKeyboardButton(
+            'Английский 🇬🇧',
+            callback_data='but_5'
+        )
+        lang_mix = types.InlineKeyboardButton(
+            'Смешанный язык 🇷🇺+🇬🇧',
+            callback_data='but_6'
+        )
+        back = types.InlineKeyboardButton(
+            'Сменить фоомат 🔄',
+            callback_data='image'
+        )
         new_menu2.add(lang_rus, lang_eng, lang_mix).row(back)
         bot.edit_message_text(
             chat_id=call.message.chat.id,
@@ -78,10 +100,11 @@ def main_keyboard(call):
         )
 
 
-
-
-@bot.callback_query_handler(func=lambda call: call.data in ['but_1', 'but_2', 'but_3'])
+@bot.callback_query_handler(
+    func=lambda call: call.data in ['but_1', 'but_2', 'but_3']
+)
 def img(call):
+    """Выбор языка для изображения"""
     global lang
     if call.data == 'but_1':
         lang = 'rus'
@@ -99,8 +122,11 @@ def img(call):
     bot.register_next_step_handler(send, hendle_photo)
 
 
-@bot.callback_query_handler(func=lambda call: call.data in ['but_4', 'but_5', 'but_6'])
+@bot.callback_query_handler(
+    func=lambda call: call.data in ['but_4', 'but_5', 'but_6']
+)
 def pdf(call):
+    """Выбор языка для PDF"""
     global lang
     if call.data == 'but_4':
         lang = 'rus'
@@ -120,6 +146,7 @@ def pdf(call):
 
 @bot.message_handler(content_types=['photo', 'text'])
 def hendle_photo(message):
+    """Получение и обработка изображения"""
     if message.content_type == 'photo':
         path = r'/Users/madmas/Dev/img2text_bot/image.jpg'
         if len(message.photo) <= 2:
@@ -151,6 +178,7 @@ def hendle_photo(message):
 
 @bot.message_handler(content_types=['document', 'text'])
 def hendle_pdf(message):
+    """Получение и обработка PDF"""
     if message.content_type == 'document':
         document_id = message.document.file_id
         file_info = bot.get_file(document_id).file_path
@@ -169,10 +197,10 @@ def hendle_pdf(message):
     elif message.content_type == 'text':
         if message.text == '/start':
             return start_message(message)
-        elif message.text == '/pdf':
-            return pdf2text(message)
         elif message.text == '/image':
-            return image2text(message)
+            return main_keyboard()
+        elif message.text == '/pdf':
+            return main_keyboard()
         else:
             bot.send_message(message.chat.id, 'Не пиши в чат! Есть же кнопки.')
     else:
@@ -186,6 +214,7 @@ def hendle_pdf(message):
 
 
 def get_text(message, path,  language):
+    """Конвертация текста и отправка его в чат"""
     text = pytesseract.image_to_string(path, lang=language, config=config)
     if text == '':
         bot.send_message(message.chat.id, 'Не получилось разобрать текст.')
