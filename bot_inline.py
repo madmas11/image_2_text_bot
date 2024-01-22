@@ -1,14 +1,12 @@
 # version 1.0.1 inline keyboard
-
 import glob
 import os
 
 import pytesseract
 import telebot
-from telebot import types
-from pdf2image import convert_from_path
 from dotenv import load_dotenv
-
+from pdf2image import convert_from_path
+from telebot import types
 
 load_dotenv()
 token = os.getenv('TOKEN')
@@ -45,9 +43,18 @@ def image2text(message):
     buttons = types.InlineKeyboardMarkup(
         row_width=2
     )
-    button_1 = types.InlineKeyboardButton('Русский 🇷🇺', callback_data='but_1')
-    button_2 = types.InlineKeyboardButton('Английский 🇬🇧', callback_data='but_2')
-    button_3 = types.InlineKeyboardButton('Смешанный язык 🇷🇺+🇬🇧', callback_data='but_3')
+    button_1 = types.InlineKeyboardButton(
+        'Русский 🇷🇺',
+        callback_data='but_1'
+    )
+    button_2 = types.InlineKeyboardButton(
+        'Английский 🇬🇧',
+        callback_data='but_2'
+    )
+    button_3 = types.InlineKeyboardButton(
+        'Смешанный язык 🇷🇺+🇬🇧',
+        callback_data='but_3'
+    )
     buttons.add(button_1, button_2).row(button_3)
     bot.send_message(
         message.chat.id,
@@ -62,9 +69,18 @@ def pdf2text(message):
     buttons = types.InlineKeyboardMarkup(
         row_width=2
     )
-    button_1 = types.InlineKeyboardButton('Русский 🇷🇺', callback_data='but_4')
-    button_2 = types.InlineKeyboardButton('Английский 🇬🇧', callback_data='but_5')
-    button_3 = types.InlineKeyboardButton('Смешанный язык 🇷🇺+🇬🇧', callback_data='but_3')
+    button_1 = types.InlineKeyboardButton(
+        'Русский 🇷🇺',
+        callback_data='but_4'
+    )
+    button_2 = types.InlineKeyboardButton(
+        'Английский 🇬🇧',
+        callback_data='but_5'
+    )
+    button_3 = types.InlineKeyboardButton(
+        'Смешанный язык 🇷🇺+🇬🇧',
+        callback_data='but_3'
+    )
     buttons.add(button_1, button_2).row(button_3)
     bot.send_message(
         message.chat.id,
@@ -73,7 +89,9 @@ def pdf2text(message):
     )
 
 
-@bot.callback_query_handler(func=lambda call: call.data in ['but_1', 'but_2', 'but_3'])
+@bot.callback_query_handler(
+    func=lambda call: call.data in ['but_1', 'but_2', 'but_3']
+)
 def img(call):
     """Выбор языка для изображения"""
     global lang
@@ -90,7 +108,9 @@ def img(call):
     bot.register_next_step_handler(send, hendle_photo)
 
 
-@bot.callback_query_handler(func=lambda call: call.data in ['but_4', 'but_5', 'but_6'])
+@bot.callback_query_handler(
+    func=lambda call: call.data in ['but_4', 'but_5', 'but_6']
+)
 def pdf(call):
     """Выбор языка для PDF"""
     global lang
@@ -120,7 +140,7 @@ def hendle_photo(message):
         downloaded_file = bot.download_file(file_info)
         with open('image.jpg', 'wb') as new_file:
             new_file.write(downloaded_file)
-        get_text(message, path,  language=lang)
+        get_text(message, path, language=lang)
     elif message.content_type == 'text':
         if message.text == '/start':
             return start_message(message)
@@ -175,7 +195,7 @@ def hendle_pdf(message):
         return
 
 
-def get_text(message, path,  language):
+def get_text(message, path, language):
     """Конвертация текста и отправка его в чат"""
     text = pytesseract.image_to_string(path, lang=language, config=config)
     if text == '':
