@@ -1,16 +1,15 @@
 # version 2.0 inline keyboard + voice message
-import pytesseract
-import telebot
 import glob
-import speech_recognition as sr
-import pydub
 import os
 
-from telebot import types
-from pdf2image import convert_from_path
+import pydub
+import pytesseract
+import speech_recognition as sr
+import telebot
 from dotenv import load_dotenv
 from exception import UnknownValueError
-
+from pdf2image import convert_from_path
+from telebot import types
 
 load_dotenv()
 token = os.getenv('TOKEN')
@@ -147,7 +146,9 @@ def voice(call):
     elif call.data == 'but_8':
         lang = 'en_EN'
         bot.send_message(call.message.chat.id, 'Выбран английский язык.')
-    send = bot.send_message(call.message.chat.id, 'Отправь голосовое сообщение.')
+    send = bot.send_message(
+        call.message.chat.id, 'Отправь голосовое сообщение.'
+    )
     bot.register_next_step_handler(send, hendle_voice)
 
 
@@ -163,7 +164,7 @@ def hendle_photo(message):
         downloaded_file = bot.download_file(file_info)
         with open('image.jpg', 'wb') as new_file:
             new_file.write(downloaded_file)
-        get_text(message, image_path,  language=lang)
+        get_text(message, image_path, language=lang)
     elif message.content_type == 'text':
         if message.text == '/start':
             return start_message(message)
@@ -280,12 +281,12 @@ def voice_to_text(message, name, lang):
             result = r.recognize_google(audio, language=lang)
             bot.send_message(message.chat.id, 'Вот твой текст!')
             bot.send_message(message.chat.id, result)
-        except:
+        except UnknownValueError:
             raise UnknownValueError(bot.send_message(
                 message.chat.id, 'Не получилось разобрать аудио.'))
 
 
-def get_text(message, path,  language):
+def get_text(message, path, language):
     """Конвертация текста и отправка его в чат"""
     text = pytesseract.image_to_string(path, lang=language, config=config)
     if text == '':
